@@ -1,11 +1,13 @@
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <opencv2/opencv.hpp>
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "matching_result.pb.h"
 
 namespace mt {
 enum class MatchMode {
@@ -62,6 +64,7 @@ ABSL_FLAG(std::string, output_path, "", "Output path.");
 ABSL_FLAG(mt::MatchMode, match_mode, mt::MatchMode::kSQDIFF, "Match mode.");
 
 int main(int argc, char* argv[]) {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
   absl::ParseCommandLine(argc, argv);
   cv::Mat image = cv::imread(absl::GetFlag(FLAGS_image_path), 1);
   cv::Mat templ = cv::imread(absl::GetFlag(FLAGS_template_path), 1);
@@ -70,10 +73,27 @@ int main(int argc, char* argv[]) {
   cv::Mat result;
   int result_cols = image.cols - templ.cols + 1;
   int result_rows = image.rows - templ.rows + 1;
+  if (result_cols <= 0 && result_rows <= 0) {
+    return EXIT_FAILURE;
+  }
+
   result.create(result_rows,result_cols, CV_32FC1);
   cv::matchTemplate(image, templ, result, method);
-  if (result_cols > 0 && result_rows > 0) {
-    std::cout << std::setprecision(6) << result.at<float>(0,0) << std::endl;
+  matching_agent::MatchingResult result_pb;
+  result_pb.set_rows(result_rows);
+  result_pb.set_cols(result_cols);
+  // TODO: let's do the stupid but correct way first...
+  for (int r = 0; r < result_rows; ++r) {
+    for (int c = 0; c < result_cols; ++c) {
+      result_pb.add_payload(result.at<float>(r,c));
+    }
+  }
+
+  std::fstream fout(absl::GetFlag(FLAGS_output_path),
+                    std::ios::out | std::ios::trunc | std::ios::binary);
+  if (!result_pb.SerializeToOstream(&fout)) {
+    std::cerr << "Failed to write result." << std::endl;
+    return EXIT_FAILURE;
   }
   return 0;
 }

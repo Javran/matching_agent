@@ -1,4 +1,6 @@
+"""Workspace for matching_agent."""
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 
 # abseil-cpp
 http_archive(
@@ -16,6 +18,19 @@ http_archive(
     urls = ["https://github.com/google/googletest/archive/10b1902d893ea8cc43c69541d70868f91af3646b.zip"],
 )
 
+# Protobuf rules.
+http_archive(
+    name = "rules_proto",
+    sha256 = "2490dca4f249b8a9a3ab07bd1ba6eca085aaf8e45a734af92aad0c42d9dc7aaf",
+    strip_prefix = "rules_proto-218ffa7dfa5408492dc86c01ee637614f8695c45",
+    urls = [
+        "https://github.com/bazelbuild/rules_proto/archive/218ffa7dfa5408492dc86c01ee637614f8695c45.tar.gz",
+    ],
+)
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+rules_proto_dependencies()
+rules_proto_toolchains()
+
 # C++ rules for Bazel.
 http_archive(
     name = "rules_cc",
@@ -24,9 +39,11 @@ http_archive(
     urls = ["https://github.com/bazelbuild/rules_cc/archive/9e10b8a6db775b1ecd358d8ddd3dab379a2c29a5.zip"],
 )
 
+
 # OpenCV Release 4.3.0
 new_local_repository(
     name = "opencv",
     build_file = "opencv.BUILD",
     path = "/opt/javran/opencv-4.3.0",
 )
+
