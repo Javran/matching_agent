@@ -1,6 +1,6 @@
 """match-template cli"""
 
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 cc_binary(
@@ -12,6 +12,29 @@ cc_binary(
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/strings",
         "@opencv",
+    ],
+)
+
+cc_library(
+    name = "load_patterns",
+    srcs = ["load_patterns.cc"],
+    hdrs = ["load_patterns.h"],
+    deps = [
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/strings",
+        "@opencv",
+    ],
+)
+
+cc_binary(
+    name = "ma_server",
+    srcs = [
+        "ma_server.cc",
+    ],
+    deps = [
+        ":load_patterns",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
     ],
 )
 
