@@ -17,4 +17,4 @@ PatternMap LoadPatterns(absl::string_view base_path);
 }  // namespace matching_agent
 
 
-#endif // MATCHING_AGENT_LOAD_PATTERNS_H_
+#endif  // MATCHING_AGENT_LOAD_PATTERNS_H_

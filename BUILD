@@ -26,13 +26,22 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "ma_service",
+    srcs = ["ma_service.cc"],
+    hdrs = ["ma_service.h"],
+    deps = [
+        ":load_patterns",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
 cc_binary(
     name = "ma_server",
     srcs = [
         "ma_server.cc",
     ],
-    deps = [
-        ":load_patterns",
+    deps = [":ma_service",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
     ],

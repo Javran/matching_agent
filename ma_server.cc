@@ -7,8 +7,9 @@
 #include "absl/flags/parse.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
-#include "load_patterns.h"
+#include "ma_service.h"
 #include "opencv2/core/mat.hpp"
+
 
 /*
   TODO
@@ -39,20 +40,8 @@ ABSL_FLAG(std::string, pattern_base, "", "Base directory to pattern images.");
 
 int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
-  auto pm = matching_agent::LoadPatterns(absl::GetFlag(FLAGS_pattern_base));
-  for (const auto & pair : pm) {
-    std::cout << pair.first << ": "
-              << pair.second.size() << " items\n"
-              << "  ";
-
-    std::vector<std::string> pretty;
-    std::transform(pair.second.begin(),
-                   pair.second.end(),
-                   std::back_inserter(pretty),
-                   [](const cv::Mat &mat) {
-                     return absl::StrCat(mat.rows, "x", mat.cols);
-                   });
-    std::cout << absl::StrJoin(pretty, ", ") << '\n';
-  }
+  matching_agent::MatchingAgentService
+    service(absl::GetFlag(FLAGS_port),
+            absl::GetFlag(FLAGS_pattern_base));
   return 0;
 }
