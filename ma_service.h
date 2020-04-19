@@ -12,6 +12,8 @@ class MatchingAgentService {
   MatchingAgentService(const MatchingAgentService&) = delete;
   MatchingAgentService& operator=(const MatchingAgentService &) = delete;
 
+  void Run();
+
  private:
   int port_;
   const PatternMap pattern_map_;

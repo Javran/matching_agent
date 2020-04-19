@@ -10,7 +10,6 @@
 #include "ma_service.h"
 #include "opencv2/core/mat.hpp"
 
-
 /*
   TODO
   Server design:

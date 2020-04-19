@@ -32,6 +32,7 @@ cc_library(
     hdrs = ["ma_service.h"],
     deps = [
         ":load_patterns",
+        "@boost//:asio",
         "@com_google_absl//absl/strings",
     ],
 )
