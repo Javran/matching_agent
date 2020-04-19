@@ -7,9 +7,9 @@
 #include "absl/flags/parse.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
-#include "matching_result.pb.h"
+#include "matching_agent.pb.h"
 
-namespace mt {
+namespace ma_cli {
 enum class MatchMode {
   kSQDIFF = cv::TM_SQDIFF,
   kSQDIFF_NORMED = cv::TM_SQDIFF_NORMED,
@@ -61,7 +61,7 @@ std::string AbslUnparseFlag(MatchMode mode) {
 ABSL_FLAG(std::string, image_path, "", "Image path.");
 ABSL_FLAG(std::string, template_path, "", "Template path.");
 ABSL_FLAG(std::string, output_path, "", "Output path.");
-ABSL_FLAG(mt::MatchMode, match_mode, mt::MatchMode::kSQDIFF, "Match mode.");
+ABSL_FLAG(ma_cli::MatchMode, match_mode, ma_cli::MatchMode::kSQDIFF, "Match mode.");
 
 int main(int argc, char* argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
