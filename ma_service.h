@@ -2,9 +2,12 @@
 #define MATCHING_AGENT_MA_SERVICE_H_
 
 #include "absl/strings/string_view.h"
+#include "boost/asio/ip/tcp.hpp"
 #include "load_patterns.h"
 
 namespace matching_agent {
+
+using boost::asio::ip::tcp;
 
 class MatchingAgentService {
  public:
@@ -17,6 +20,7 @@ class MatchingAgentService {
  private:
   int port_;
   const PatternMap pattern_map_;
+  void Session(tcp::socket sock);
 };
 
 }  // namespace matching_agent

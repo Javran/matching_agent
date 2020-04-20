@@ -42,5 +42,6 @@ int main(int argc, char** argv) {
   matching_agent::MatchingAgentService
     service(absl::GetFlag(FLAGS_port),
             absl::GetFlag(FLAGS_pattern_base));
+  service.Run();
   return 0;
 }

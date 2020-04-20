@@ -32,7 +32,9 @@ cc_library(
     hdrs = ["ma_service.h"],
     deps = [
         ":load_patterns",
+        ":matching_agent_cc_proto",
         "@boost//:asio",
+        "@boost//:interprocess",
         "@com_google_absl//absl/strings",
     ],
 )
@@ -42,7 +44,8 @@ cc_binary(
     srcs = [
         "ma_server.cc",
     ],
-    deps = [":ma_service",
+    deps = [
+        ":ma_service",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
     ],
