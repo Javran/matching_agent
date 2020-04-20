@@ -36,6 +36,7 @@ cc_library(
         "@boost//:asio",
         "@boost//:interprocess",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:optional",
     ],
 )
 

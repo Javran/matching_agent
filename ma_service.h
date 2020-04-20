@@ -2,6 +2,7 @@
 #define MATCHING_AGENT_MA_SERVICE_H_
 
 #include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "boost/asio/ip/tcp.hpp"
 #include "load_patterns.h"
 
@@ -18,9 +19,13 @@ class MatchingAgentService {
   void Run();
 
  private:
+  using FindTagResult = std::pair<absl::string_view, float>;
+
   int port_;
   const PatternMap pattern_map_;
+
   void Session(tcp::socket sock);
+  absl::optional<FindTagResult> FindTag(const cv::Mat image);
 };
 
 }  // namespace matching_agent
