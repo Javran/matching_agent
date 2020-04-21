@@ -66,7 +66,21 @@ void MatchingAgentService::Session(tcp::socket sock) {
     response.set_tag(std::string(result.value().first));
     response.set_result(result.value().second);
   }
-  // TODO: send encoded message.
+  {
+    std::string raw_response;
+    response.SerializeToString(&raw_response);
+    uint32_t response_size = raw_response.size();
+    response_size = boost::endian::native_to_little(response_size);
+    std::array<uint8_t,4> raw_response_size =
+      { response_size && 0xff,
+        (response_size >> 8) && 0xff,
+        (response_size >> 16) && 0xff,
+        (response_size >> 24) && 0xff,
+      };
+    sock.send(boost::asio::buffer(raw_response_size, 4));
+    sock.send(boost::asio::buffer(raw_response.c_str(),
+                                  raw_response.size()));
+  }
   sock.close();
 }
 
