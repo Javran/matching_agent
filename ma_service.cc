@@ -87,21 +87,24 @@ void MatchingAgentService::Session(tcp::socket sock) {
 absl::optional<MatchingAgentService::FindTagResult>
   MatchingAgentService::FindTag(const cv::Mat image) {
   // TODO: generalize method.
-  int method = cv::TM_CCOEFF_NORMED;
+  int method = cv::TM_CCORR_NORMED;
   absl::optional<FindTagResult> current_best;
   for (auto const &tag_pair : pattern_map_) {
+    // std::cout << "On tag: " << tag_pair.first << ", ";
     for (auto const &templ : tag_pair.second) {
       if (image.cols >= templ.cols && image.rows >= templ.rows) {
         cv::Mat result;
         cv::matchTemplate(image, templ, result, method);
         double maxVal;
         cv::minMaxLoc(result, nullptr, &maxVal);
+        // std::cout << maxVal << ' ';
         if (!current_best.has_value() ||
             current_best.value().second < maxVal) {
           current_best = {tag_pair.first, maxVal};
         }
       }
     }
+    // std::cout << '\n';
   }
   return current_best;
 }
