@@ -9,6 +9,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
 #include "boost/asio.hpp"
+#include "boost/endian/conversion.hpp"
 #include "boost/interprocess/streams/bufferstream.hpp"
 #include "load_patterns.h"
 #include "matching_agent.pb.h"
@@ -39,11 +40,12 @@ void MatchingAgentService::Session(tcp::socket sock) {
     boost::asio::read(sock,
                       boost::asio::buffer(raw_size),
                       boost::asio::transfer_at_least(4));
-    // assumed local representation is little-endian.
+    // size is transferred using little endian.
     size = raw_size[0];
     size |= uint32_t(raw_size[1]) << 8;
     size |= uint32_t(raw_size[2]) << 16;
     size |= uint32_t(raw_size[3]) << 24;
+    size = boost::endian::little_to_native(size);
   }
   FindTagRequest req;
   {

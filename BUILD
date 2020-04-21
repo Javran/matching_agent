@@ -34,6 +34,7 @@ cc_library(
         ":load_patterns",
         ":matching_agent_cc_proto",
         "@boost//:asio",
+        "@boost//:endian",
         "@boost//:interprocess",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/types:optional",
