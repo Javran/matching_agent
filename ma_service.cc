@@ -72,10 +72,10 @@ void MatchingAgentService::Session(tcp::socket sock) {
     uint32_t response_size = raw_response.size();
     response_size = boost::endian::native_to_little(response_size);
     std::array<uint8_t,4> raw_response_size =
-      { response_size && 0xff,
-        (response_size >> 8) && 0xff,
-        (response_size >> 16) && 0xff,
-        (response_size >> 24) && 0xff,
+      { uint8_t(response_size & 0xff),
+        uint8_t((response_size >> 8) & 0xff),
+        uint8_t((response_size >> 16) & 0xff),
+        uint8_t((response_size >> 24) & 0xff),
       };
     sock.send(boost::asio::buffer(raw_response_size, 4));
     sock.send(boost::asio::buffer(raw_response.c_str(),
