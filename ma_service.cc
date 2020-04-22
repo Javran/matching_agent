@@ -37,18 +37,33 @@ absl::optional<Message> RecvProto(tcp::socket *sock) {
     size = boost::endian::little_to_native(size);
   }
   Message req;
-  {
-    std::vector<char> buff(size);
-    boost::asio::read(*sock,
-                      boost::asio::buffer(buff),
-                      boost::asio::transfer_at_least(size));
-    boost::interprocess::bufferstream input(buff.data(), buff.size());
-    req.ParseFromIstream(&input);
-  }
+  std::vector<char> buff(size);
+  boost::asio::read(*sock,
+                    boost::asio::buffer(buff),
+                    boost::asio::transfer_at_least(size));
+  boost::interprocess::bufferstream input(buff.data(), buff.size());
+  req.ParseFromIstream(&input);
   return req;
 }
 
-// void RecvProto(
+template <class Message>
+void SendProto(tcp::socket *sock, const Message &msg) {
+  if (sock == nullptr) return;
+
+  std::string raw_msg;
+  msg.SerializeToString(&raw_msg);
+  uint32_t size = raw_msg.size();
+  size = boost::endian::native_to_little(size);
+  std::array<uint8_t,4> raw_size =
+    { uint8_t(size & 0xff),
+      uint8_t((size >> 8) & 0xff),
+      uint8_t((size >> 16) & 0xff),
+      uint8_t((size >> 24) & 0xff),
+    };
+  sock->send(boost::asio::buffer(raw_size, 4));
+  sock->send(boost::asio::buffer(raw_msg.c_str(),
+                                 raw_msg.size()));
+}
 
 }  // namespace
 
@@ -74,7 +89,9 @@ void MatchingAgentService::Session(tcp::socket sock) {
   if (!request.has_value()) return;
   FindTagRequest &req = request.value();
 
-  // TODO: stupid, but works.
+  // TODO: convert to a Mat by first holding the data in a vector
+  // and then use imdecode on it.
+  // there might be better way to do this, for now I'm just making sure this is correct.
   std::vector<char> tmp(req.payload().begin(), req.payload().end());
   FindTagResponse response;
   cv::Mat mat = cv::imdecode(std::move(tmp), cv::IMREAD_COLOR);
@@ -83,21 +100,7 @@ void MatchingAgentService::Session(tcp::socket sock) {
     response.set_tag(std::string(result.value().first));
     response.set_result(result.value().second);
   }
-  {
-    std::string raw_response;
-    response.SerializeToString(&raw_response);
-    uint32_t response_size = raw_response.size();
-    response_size = boost::endian::native_to_little(response_size);
-    std::array<uint8_t,4> raw_response_size =
-      { uint8_t(response_size & 0xff),
-        uint8_t((response_size >> 8) & 0xff),
-        uint8_t((response_size >> 16) & 0xff),
-        uint8_t((response_size >> 24) & 0xff),
-      };
-    sock.send(boost::asio::buffer(raw_response_size, 4));
-    sock.send(boost::asio::buffer(raw_response.c_str(),
-                                  raw_response.size()));
-  }
+  SendProto(&sock, response);
   sock.close();
 }
 
