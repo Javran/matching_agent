@@ -16,6 +16,42 @@
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 
+namespace {
+
+using boost::asio::ip::tcp;
+
+template <class Message>
+absl::optional<Message> RecvProto(tcp::socket *sock) {
+  if (sock == nullptr) return absl::nullopt;
+  uint32_t size;
+  {
+    std::array<uint8_t,4> raw_size;
+    boost::asio::read(*sock,
+                      boost::asio::buffer(raw_size),
+                      boost::asio::transfer_at_least(4));
+    // size is transferred using little endian.
+    size = raw_size[0];
+    size |= uint32_t(raw_size[1]) << 8;
+    size |= uint32_t(raw_size[2]) << 16;
+    size |= uint32_t(raw_size[3]) << 24;
+    size = boost::endian::little_to_native(size);
+  }
+  Message req;
+  {
+    std::vector<char> buff(size);
+    boost::asio::read(*sock,
+                      boost::asio::buffer(buff),
+                      boost::asio::transfer_at_least(size));
+    boost::interprocess::bufferstream input(buff.data(), buff.size());
+    req.ParseFromIstream(&input);
+  }
+  return req;
+}
+
+// void RecvProto(
+
+}  // namespace
+
 namespace matching_agent {
 
 MatchingAgentService::MatchingAgentService(int port, absl::string_view path_base)
@@ -34,28 +70,9 @@ void MatchingAgentService::Run() {
 
 // TODO: bullet-proof against exceptions.
 void MatchingAgentService::Session(tcp::socket sock) {
-  uint32_t size;
-  {
-    std::array<uint8_t,4> raw_size;
-    boost::asio::read(sock,
-                      boost::asio::buffer(raw_size),
-                      boost::asio::transfer_at_least(4));
-    // size is transferred using little endian.
-    size = raw_size[0];
-    size |= uint32_t(raw_size[1]) << 8;
-    size |= uint32_t(raw_size[2]) << 16;
-    size |= uint32_t(raw_size[3]) << 24;
-    size = boost::endian::little_to_native(size);
-  }
-  FindTagRequest req;
-  {
-    std::vector<char> buff(size);
-    boost::asio::read(sock,
-                      boost::asio::buffer(buff),
-                      boost::asio::transfer_at_least(size));
-    boost::interprocess::bufferstream input(buff.data(), buff.size());
-    req.ParseFromIstream(&input);
-  }
+  absl::optional<FindTagRequest> request = RecvProto<FindTagRequest>(&sock);
+  if (!request.has_value()) return;
+  FindTagRequest &req = request.value();
 
   // TODO: stupid, but works.
   std::vector<char> tmp(req.payload().begin(), req.payload().end());
