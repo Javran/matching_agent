@@ -85,25 +85,29 @@ void MatchingAgentService::Run() {
   }
 }
 
-// TODO: bullet-proof against exceptions.
 void MatchingAgentService::Session(tcp::socket sock) {
-  absl::optional<FindTagRequest> request = RecvProto<FindTagRequest>(&sock);
-  if (!request.has_value()) return;
-  FindTagRequest &req = request.value();
+  try {
+    for (;;) {
+      absl::optional<FindTagRequest> request = RecvProto<FindTagRequest>(&sock);
+      if (!request.has_value()) return;
+      FindTagRequest &req = request.value();
 
-  // TODO: convert to a Mat by first holding the data in a vector
-  // and then use imdecode on it.
-  // there might be better way to do this, for now I'm just making sure this is correct.
-  std::vector<char> tmp(req.payload().begin(), req.payload().end());
-  FindTagResponse response;
-  cv::Mat mat = cv::imdecode(std::move(tmp), cv::IMREAD_COLOR);
-  if (auto result = FindTag(mat);
-      result.has_value()) {
-    response.set_tag(std::string(result.value().first));
-    response.set_result(result.value().second);
+      // TODO: convert to a Mat by first holding the data in a vector
+      // and then use imdecode on it.
+      // there might be better way to do this, for now I'm just making sure this is correct.
+      std::vector<char> tmp(req.payload().begin(), req.payload().end());
+      FindTagResponse response;
+      cv::Mat mat = cv::imdecode(std::move(tmp), cv::IMREAD_COLOR);
+      if (auto result = FindTag(mat);
+          result.has_value()) {
+        response.set_tag(std::string(result.value().first));
+        response.set_result(result.value().second);
+      }
+      SendProto(&sock, response);
+    }
+  } catch (const std::exception &e) {
+    std::cerr << e.what();
   }
-  SendProto(&sock, response);
-  sock.close();
 }
 
 absl::optional<MatchingAgentService::FindTagResult>
