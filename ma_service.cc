@@ -60,9 +60,11 @@ void SendProto(tcp::socket *sock, const Message &msg) {
       uint8_t((size >> 16) & 0xff),
       uint8_t((size >> 24) & 0xff),
     };
-  sock->send(boost::asio::buffer(raw_size, 4));
-  sock->send(boost::asio::buffer(raw_msg.c_str(),
-                                 raw_msg.size()));
+  boost::asio::write(*sock,
+                     boost::asio::buffer(raw_size, 4));
+  boost::asio::write(*sock,
+                     boost::asio::buffer(raw_msg.c_str(),
+                                         raw_msg.size()));
 }
 
 }  // namespace
