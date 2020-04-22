@@ -105,8 +105,10 @@ void MatchingAgentService::Session(tcp::socket sock) {
       }
       SendProto(&sock, response);
     }
-  } catch (const std::exception &e) {
-    std::cerr << e.what();
+  } catch (const boost::system::system_error &e) {
+    if (e.code() != boost::asio::error::eof) {
+      std::cerr << e.what() << '\n';
+    }
   }
 }
 
